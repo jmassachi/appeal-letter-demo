@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fill PDF Template</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background-color: #f8f8f8; }
+    form { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1); width: 360px; }
+    input, button, select { width: 100%; margin-top: 10px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+
+  <h2>Fill PDF Form</h2>
+
+  <form id="pdfForm">
+    <label>Name:</label>
+    <input type="text" id="name" required>
+
+    <label>Email:</label>
+    <input type="email" id="email" required>
+
+    <label>Message:</label>
+    <input type="text" id="message" required>
+
+    <label>Choose PDF Template:</label>
+    <select id="template">
+      <option value="template1.pdf">Template 1</option>
+      <option value="template2.pdf">Template 2</option>
+    </select>
+
+    <button type="submit">Generate PDF</button>
+  </form>
+
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script>
+    const form = document.getElementById('pdfForm');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Collect user input
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const message = document.getElementById('message').value;
+      const templatePath = document.getElementById('template').value;
+
+      // Fetch the selected PDF template
+      const existingPdfBytes = await fetch(templatePath).then(res => res.arrayBuffer());
+
+      // Load a PDF with pdf-lib
+      const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+      const form = pdfDoc.getForm();
+
+      // Fill the PDF form fields
+      try {
+        form.getTextField('Name').setText(name);
+        form.getTextField('Email').setText(email);
+        form.getTextField('Message').setText(message);
+      } catch (err) {
+        alert("Make sure your PDF has fields named 'Name', 'Email', and 'Message'");
+        return;
+      }
+
+      form.flatten(); // Optional: makes fields non-editable in final PDF
+
+      // Save and trigger download
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'filled_template.pdf';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+
+</body>
+</html>
