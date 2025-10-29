@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Patient PDF Form Filler</title>
+  <title>Appeal Letter Generator</title>
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -15,7 +15,6 @@
       --bg: #f3f4f6;
       --white: #ffffff;
       --text: #111827;
-      --muted: #6b7280;
       --border: #e5e7eb;
       --radius: 10px;
       --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -107,19 +106,12 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
-    .footer {
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-top: 2rem;
-    }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h2>Patient PDF Form Filler</h2>
+    <h2>Appeal Letter Generator</h2>
     <form id="pdfForm">
       <label for="date">Date</label>
       <input type="text" id="date" readonly />
@@ -136,18 +128,17 @@
       <label for="providerName">Provider Name (Credentials)</label>
       <input type="text" id="providerName" placeholder="Dr. Jane Doe, MD" required />
 
-      <label for="template">Select PDF Template</label>
+      <label for="template">Select Appeal Letter Template</label>
       <select id="template" required>
-        <option value="template1.pdf">Template 1</option>
-        <option value="template2.pdf">Template 2</option>
+        <option value="template1.pdf">Prostate SBRT</option>
+        <option value="template2.pdf">SRS for Brain Mets</option>
       </select>
 
-      <button type="submit">Generate Filled PDF</button>
+      <!-- Updated button text -->
+      <button type="submit">Generate Appeal Letter</button>
     </form>
 
-    <div class="success" id="successMsg">✅ Your filled PDF has been downloaded!</div>
-
-    <div class="footer">Powered by PDF-Lib | Modern Form UI</div>
+    <div class="success" id="successMsg">✅ Your appeal letter has been downloaded!</div>
   </div>
 
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
@@ -190,7 +181,7 @@
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'filled_patient_form.pdf';
+        a.download = 'appeal_letter.pdf';
         a.click();
 
         URL.revokeObjectURL(url);
@@ -206,5 +197,3 @@
 
 </body>
 </html>
-
-
