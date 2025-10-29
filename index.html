@@ -15,6 +15,7 @@
       --bg: #f3f4f6;
       --white: #ffffff;
       --text: #111827;
+      --muted: #6b7280;
       --border: #e5e7eb;
       --radius: 10px;
       --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -35,7 +36,7 @@
     .container {
       background-color: var(--white);
       width: 100%;
-      max-width: 460px;
+      max-width: 480px;
       padding: 2rem 2.5rem;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -106,6 +107,11 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Smooth transition for custom purpose input */
+    #customPurposeContainer {
+      transition: all 0.3s ease;
+    }
   </style>
 </head>
 <body>
@@ -128,13 +134,18 @@
       <label for="providerName">Provider Name (Credentials)</label>
       <input type="text" id="providerName" placeholder="Dr. Jane Doe, MD" required />
 
-      <label for="template">Select PDF Template</label>
+      <label for="template">Select Appeal Letter Template</label>
       <select id="template" required>
         <option value="template1.pdf">Template 1</option>
         <option value="template2.pdf">Template 2</option>
+        <option value="custom">Custom Purpose</option>
       </select>
 
-      <!-- Updated button text -->
+      <div id="customPurposeContainer" style="display:none; margin-top:1rem;">
+        <label for="customPurpose">Specify Appeal Letter Purpose</label>
+        <input type="text" id="customPurpose" placeholder="e.g., Insurance denial for procedure X" />
+      </div>
+
       <button type="submit">Generate Appeal Letter</button>
     </form>
 
@@ -146,11 +157,24 @@
     const form = document.getElementById('pdfForm');
     const successMsg = document.getElementById('successMsg');
     const dateField = document.getElementById('date');
+    const templateSelect = document.getElementById('template');
+    const customPurposeContainer = document.getElementById('customPurposeContainer');
+    const customPurposeInput = document.getElementById('customPurpose');
 
-    // Automatically populate date with today's date
+    // Auto-populate date
     const today = new Date();
-    const formattedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    dateField.value = formattedDate;
+    dateField.value = today.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
+    // Show/hide custom purpose input
+    templateSelect.addEventListener('change', () => {
+      if (templateSelect.value === 'custom') {
+        customPurposeContainer.style.display = 'block';
+        customPurposeInput.required = true;
+      } else {
+        customPurposeContainer.style.display = 'none';
+        customPurposeInput.required = false;
+      }
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -160,11 +184,27 @@
       const dob = document.getElementById('dob').value;
       const diagnosis = document.getElementById('diagnosis').value.trim();
       const providerName = document.getElementById('providerName').value.trim();
-      const templatePath = document.getElementById('template').value;
+      let templatePath = templateSelect.value;
 
       try {
-        const existingPdfBytes = await fetch(templatePath).then(res => res.arrayBuffer());
-        const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+        let pdfBytes;
+
+        if (templatePath === 'custom') {
+          const purpose = customPurposeInput.value.trim();
+
+          // Placeholder for OpenEvidence API call to generate PDF
+          console.log('Generating custom PDF for purpose:', purpose);
+          // TODO: Replace with actual OpenEvidence API call
+          // Example:
+          // pdfBytes = await fetchOpenEvidencePDF(purpose);
+
+          // Demo fallback: load template1
+          pdfBytes = await fetch('template1.pdf').then(res => res.arrayBuffer());
+        } else {
+          pdfBytes = await fetch(templatePath).then(res => res.arrayBuffer());
+        }
+
+        const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
         const pdfForm = pdfDoc.getForm();
 
         pdfForm.getTextField('Date').setText(date);
@@ -175,21 +215,18 @@
 
         pdfForm.flatten();
 
-        const pdfBytes = await pdfDoc.save();
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const blob = new Blob([await pdfDoc.save()], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
-
         const a = document.createElement('a');
         a.href = url;
         a.download = 'appeal_letter.pdf';
         a.click();
-
         URL.revokeObjectURL(url);
 
         successMsg.style.display = 'block';
         setTimeout(() => successMsg.style.display = 'none', 4000);
       } catch (error) {
-        alert("⚠️ Error filling the PDF. Make sure your PDF form fields are named 'Date', 'PatientName', 'DateOfBirth', 'Diagnosis', and 'ProviderName'.");
+        alert("⚠️ Error generating the appeal letter. Ensure PDF form fields exist.");
         console.error(error);
       }
     });
