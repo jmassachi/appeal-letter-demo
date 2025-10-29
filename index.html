@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PDF Template Filler</title>
+  <title>Patient PDF Form Filler</title>
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <style>
     :root {
-      --primary: #2563eb;
-      --primary-hover: #1e40af;
+      --primary: #005587;
+      --primary-hover: #00446b;
       --bg: #f3f4f6;
       --white: #ffffff;
       --text: #111827;
@@ -36,7 +36,7 @@
     .container {
       background-color: var(--white);
       width: 100%;
-      max-width: 420px;
+      max-width: 460px;
       padding: 2rem 2.5rem;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -70,7 +70,7 @@
     input:focus, select:focus {
       border-color: var(--primary);
       outline: none;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      box-shadow: 0 0 0 3px rgba(0, 85, 135, 0.2);
     }
 
     button {
@@ -119,16 +119,22 @@
 <body>
 
   <div class="container">
-    <h2>Fill Your PDF Form</h2>
+    <h2>Patient PDF Form Filler</h2>
     <form id="pdfForm">
-      <label for="name">Full Name</label>
-      <input type="text" id="name" placeholder="Jane Doe" required />
+      <label for="date">Date</label>
+      <input type="text" id="date" readonly />
 
-      <label for="email">Email Address</label>
-      <input type="email" id="email" placeholder="jane@example.com" required />
+      <label for="patientName">Patient Name</label>
+      <input type="text" id="patientName" placeholder="John Smith" required />
 
-      <label for="message">Message</label>
-      <input type="text" id="message" placeholder="Your custom message..." required />
+      <label for="dob">Date of Birth</label>
+      <input type="date" id="dob" required />
+
+      <label for="diagnosis">Diagnosis</label>
+      <input type="text" id="diagnosis" placeholder="e.g., Hypertension" required />
+
+      <label for="providerName">Provider Name (Credentials)</label>
+      <input type="text" id="providerName" placeholder="Dr. Jane Doe, MD" required />
 
       <label for="template">Select PDF Template</label>
       <select id="template" required>
@@ -148,13 +154,21 @@
   <script>
     const form = document.getElementById('pdfForm');
     const successMsg = document.getElementById('successMsg');
+    const dateField = document.getElementById('date');
+
+    // Automatically populate date with today's date
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    dateField.value = formattedDate;
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const message = document.getElementById('message').value.trim();
+      const date = dateField.value;
+      const patientName = document.getElementById('patientName').value.trim();
+      const dob = document.getElementById('dob').value;
+      const diagnosis = document.getElementById('diagnosis').value.trim();
+      const providerName = document.getElementById('providerName').value.trim();
       const templatePath = document.getElementById('template').value;
 
       try {
@@ -162,9 +176,12 @@
         const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
         const pdfForm = pdfDoc.getForm();
 
-        pdfForm.getTextField('Name').setText(name);
-        pdfForm.getTextField('Email').setText(email);
-        pdfForm.getTextField('Message').setText(message);
+        pdfForm.getTextField('Date').setText(date);
+        pdfForm.getTextField('PatientName').setText(patientName);
+        pdfForm.getTextField('DateOfBirth').setText(dob);
+        pdfForm.getTextField('Diagnosis').setText(diagnosis);
+        pdfForm.getTextField('ProviderName').setText(providerName);
+
         pdfForm.flatten();
 
         const pdfBytes = await pdfDoc.save();
@@ -173,16 +190,15 @@
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'filled_template.pdf';
+        a.download = 'filled_patient_form.pdf';
         a.click();
 
         URL.revokeObjectURL(url);
 
-        // Show success message
         successMsg.style.display = 'block';
         setTimeout(() => successMsg.style.display = 'none', 4000);
       } catch (error) {
-        alert("⚠️ Error filling the PDF. Make sure your PDF has fields named 'Name', 'Email', and 'Message'.");
+        alert("⚠️ Error filling the PDF. Make sure your PDF form fields are named 'Date', 'PatientName', 'DateOfBirth', 'Diagnosis', and 'ProviderName'.");
         console.error(error);
       }
     });
@@ -190,4 +206,5 @@
 
 </body>
 </html>
+
 
